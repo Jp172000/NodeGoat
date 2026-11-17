@@ -1,1 +1,35 @@
-# Pipeline DevSecOps - Seguridad en Aplicaciones (UMG)
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  sast-semgrep:
+    name: "SAST - Semgrep Code Scanning"
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Ejecutar análisis SAST con Semgrep
+        run: |
+          semgrep scan \
+            --config p/security-audit \
+            --config p/owasp-top-ten \
+            --sarif --sarif-output=semgrep-results.sarif \
+            --json --json-output=semgrep-results.json \
+            . || true
+
+      - name: Subir reporte SAST (SARIF y JSON) como artefacto
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-sast-report
+          path: |
+            semgrep-results.sarif
+            semgrep-results.json
