@@ -14,17 +14,17 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: Instalar Semgrep
-        run: python3 -m pip install --quiet semgrep
-
       - name: Ejecutar análisis SAST con Semgrep
         run: |
-          semgrep scan \
-            --config p/security-audit \
-            --config p/owasp-top-ten \
-            --sarif --sarif-output=semgrep-results.sarif \
-            --json --json-output=semgrep-results.json \
-            . || true
+          docker run --rm \
+            -v "${{ github.workspace }}:/src" \
+            semgrep/semgrep \
+            semgrep scan \
+              --config p/security-audit \
+              --config p/owasp-top-ten \
+              --sarif --sarif-output=/src/semgrep-results.sarif \
+              --json --json-output=/src/semgrep-results.json \
+              /src || true
           ls -lh semgrep-results.*
 
       - name: Subir reporte SAST (SARIF y JSON) como artefacto
