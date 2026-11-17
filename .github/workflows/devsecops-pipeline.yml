@@ -10,11 +10,12 @@ jobs:
   sast-semgrep:
     name: "SAST - Semgrep Code Scanning"
     runs-on: ubuntu-latest
-    container:
-      image: semgrep/semgrep
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
+
+      - name: Instalar Semgrep
+        run: python3 -m pip install --quiet semgrep
 
       - name: Ejecutar análisis SAST con Semgrep
         run: |
@@ -24,6 +25,7 @@ jobs:
             --sarif --sarif-output=semgrep-results.sarif \
             --json --json-output=semgrep-results.json \
             . || true
+          ls -lh semgrep-results.*
 
       - name: Subir reporte SAST (SARIF y JSON) como artefacto
         uses: actions/upload-artifact@v4
